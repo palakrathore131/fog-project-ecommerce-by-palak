@@ -3,7 +3,8 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
+
 
 app.use(cors());
 app.use(express.json());
@@ -20,8 +21,10 @@ function writeData(data){
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// GET /api/products
-// supports: page, limit, sortBy (name|price), sortOrder (asc|desc), brand, category, minPrice, maxPrice
+app.get('/', (req, res) => {
+  res.send('Welcome to Home Page');
+});
+
 app.get('/api/products', (req, res) => {
   let products = readData();
   let { page=1, limit=6, sortBy, sortOrder='asc', brand, category, minPrice, maxPrice, search } = req.query;
@@ -127,4 +130,5 @@ app.delete('/api/products/:id', (req, res) => {
   res.json({ removed });
 });
 
-app.listen(PORT, ()=> console.log(`Backend listening on ${PORT}`));
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
