@@ -71,30 +71,31 @@ export default function ProductGrid() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    Object.keys(form).forEach((key) => {
+      formData.append(key, form[key]);
+    });
+
     if (editing) {
-      // update
       fetch(`/api/products/${editing.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData,
       }).then(r => r.json()).then(() => {
         setShowModal(false);
         fetchProducts();
       }).catch(e => console.error(e));
     } else {
-      // create
       fetch("/api/products", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData,
       }).then(r => r.json()).then(() => {
         setShowModal(false);
-        // go to last page or refresh
         setPage(1);
         fetchProducts();
       }).catch(e => console.error(e));
     }
   };
+
 
   return (
     <section className="max-w-6xl mx-auto py-10 px-4">
@@ -107,7 +108,7 @@ export default function ProductGrid() {
       <div className="flex flex-wrap gap-4 mb-6">
         <div>
           <label className="block text-sm">Brand</label>
-          <select value={brandFilter} onChange={e=>{ setBrandFilter(e.target.value); setPage(1); }} className="border p-2 rounded">
+          <select value={brandFilter} onChange={e => { setBrandFilter(e.target.value); setPage(1); }} className="border p-2 rounded">
             <option value="">All</option>
             {brands.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
@@ -115,22 +116,22 @@ export default function ProductGrid() {
 
         <div>
           <label className="block text-sm">Category</label>
-          <input value={categoryFilter} onChange={e=>{ setCategoryFilter(e.target.value); setPage(1); }} placeholder="e.g. furniture" className="border p-2 rounded" />
+          <input value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }} placeholder="e.g. furniture" className="border p-2 rounded" />
         </div>
 
         <div>
           <label className="block text-sm">Min Price</label>
-          <input value={minPrice} onChange={e=>setMinPrice(e.target.value)} placeholder="e.g. 100000" className="border p-2 rounded" />
+          <input value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder="e.g. 100000" className="border p-2 rounded" />
         </div>
 
         <div>
           <label className="block text-sm">Max Price</label>
-          <input value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="e.g. 500000" className="border p-2 rounded" />
+          <input value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder="e.g. 500000" className="border p-2 rounded" />
         </div>
 
         <div>
           <label className="block text-sm">Sort</label>
-          <select value={sortBy} onChange={e=>setSortBy(e.target.value)} className="border p-2 rounded">
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border p-2 rounded">
             <option value="">None</option>
             <option value="name">Name</option>
             <option value="price">Price</option>
@@ -139,7 +140,7 @@ export default function ProductGrid() {
 
         <div>
           <label className="block text-sm">Order</label>
-          <select value={sortOrder} onChange={e=>setSortOrder(e.target.value)} className="border p-2 rounded">
+          <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} className="border p-2 rounded">
             <option value="asc">Asc</option>
             <option value="desc">Desc</option>
           </select>
@@ -147,7 +148,7 @@ export default function ProductGrid() {
 
         <div>
           <label className="block text-sm">Per page</label>
-          <select value={limit} onChange={e=>{ setLimit(parseInt(e.target.value)); setPage(1); }} className="border p-2 rounded">
+          <select value={limit} onChange={e => { setLimit(parseInt(e.target.value)); setPage(1); }} className="border p-2 rounded">
             <option value={4}>4</option>
             <option value={6}>6</option>
             <option value={12}>12</option>
@@ -169,8 +170,8 @@ export default function ProductGrid() {
                   {p.oldPrice && <div className="text-sm line-through">{p.oldPrice}</div>}
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-2">
-                  <button onClick={()=>openEdit(p)} className="px-2 py-1 border rounded">Edit</button>
-                  <button onClick={()=>handleDelete(p.id)} className="px-2 py-1 border rounded">Delete</button>
+                  <button onClick={() => openEdit(p)} className="px-2 py-1 border rounded">Edit</button>
+                  <button onClick={() => handleDelete(p.id)} className="px-2 py-1 border rounded">Delete</button>
                 </div>
               </div>
             </div>
@@ -180,10 +181,25 @@ export default function ProductGrid() {
 
       {/* Pagination */}
       <div className="flex items-center justify-center gap-3 mt-6">
-        <button disabled={page<=1} onClick={()=>setPage(page-1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+        <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
         <span>Page {page} / {totalPages}</span>
-        <button disabled={page>=totalPages} onClick={()=>setPage(page+1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+        <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
       </div>
+
+
+
+{page < totalPages && (
+  <div className="flex justify-center mt-6">
+    <button
+      onClick={() => setPage(page + 1)}
+      className="px-6 py-2 bg-gray-800 text-white rounded hover:bg-gray-700"
+    >
+      Show More
+    </button>
+  </div>
+)}
+
+
 
       {/* Modal */}
       {showModal && (
@@ -193,27 +209,40 @@ export default function ProductGrid() {
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="block text-sm">Name</label>
-                <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="border p-2 rounded w-full" />
+                <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border p-2 rounded w-full" />
               </div>
               <div>
                 <label className="block text-sm">Description</label>
-                <input value={form.desc} onChange={e=>setForm({...form, desc: e.target.value})} className="border p-2 rounded w-full" />
+                <input value={form.desc} onChange={e => setForm({ ...form, desc: e.target.value })} className="border p-2 rounded w-full" />
               </div>
               <div>
                 <label className="block text-sm">Price (use digits only or include currency)</label>
-                <input value={form.price} onChange={e=>setForm({...form, price: e.target.value})} className="border p-2 rounded w-full" />
+                <input value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="border p-2 rounded w-full" />
               </div>
               <div>
                 <label className="block text-sm">Brand</label>
-                <input value={form.brand} onChange={e=>setForm({...form, brand: e.target.value})} className="border p-2 rounded w-full" />
+                <input value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} className="border p-2 rounded w-full" />
               </div>
               <div>
                 <label className="block text-sm">Category</label>
-                <input value={form.category} onChange={e=>setForm({...form, category: e.target.value})} className="border p-2 rounded w-full" />
+                <input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="border p-2 rounded w-full" />
               </div>
 
+
+              <div>
+                <label className="block text-sm">Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
+                  className="border p-2 rounded w-full"
+                />
+              </div>
+
+
+
               <div className="flex justify-end gap-3 mt-4">
-                <button type="button" onClick={()=>setShowModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded">Cancel</button>
                 <button type="submit" className="px-4 py-2 bg-yellow-600 text-white rounded">{editing ? "Update" : "Add"}</button>
               </div>
             </form>

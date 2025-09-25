@@ -3,6 +3,10 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const app = express();
+
+const multer = require('multer');
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
 const PORT = process.env.PORT || 3000;
 
 
@@ -12,6 +16,11 @@ app.use(express.json());
 // serve frontend static (optional)
 app.use('/assets', express.static(path.join(__dirname, '..', 'frontend', 'public')));
 
+// serve uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
+
 const DATA_FILE = path.join(__dirname, 'products.json');
 
 function readData(){
@@ -20,6 +29,37 @@ function readData(){
 function writeData(data){
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
+
+
+
+const SUB_FILE = path.join(__dirname, 'subscribers.json');
+
+function readSubs() {
+  if (!fs.existsSync(SUB_FILE)) return [];
+  return JSON.parse(fs.readFileSync(SUB_FILE, 'utf-8'));
+}
+function writeSubs(data) {
+  fs.writeFileSync(SUB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+app.post('/api/subscribe', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email required" });
+
+  let subs = readSubs();
+  if (subs.includes(email)) {
+    return res.json({ message: "You are already subscribed!" });
+  }
+
+  subs.push(email);
+  writeSubs(subs);
+
+  res.json({ message: "Thank you for subscribing! Welcome to our community 🎉" });
+});
+
+
+
+
 
 app.get('/', (req, res) => {
   res.send('Welcome to Home Page');
@@ -99,6 +139,36 @@ app.post('/api/products', (req, res) => {
   writeData(products);
   res.status(201).json(newP);
 });
+
+
+
+
+app.post('/api/products', upload.single('image'), (req, res) => {
+  const products = readData();
+  const body = req.body;
+  const newId = products.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+
+  const newP = {
+    id: newId,
+    name: body.name || 'Unnamed',
+    desc: body.desc || '',
+    price: body.price || 'Rp 0',
+    priceNum: parseInt((body.priceNum || body.price || '0').toString().replace(/[^\d]/g,'')) || 0,
+    brand: body.brand || 'Generic',
+    category: body.category || 'furniture',
+    image: req.file ? `/uploads/${req.file.filename}` : '/img/image 1.png'
+  };
+
+  products.push(newP);
+  writeData(products);
+  res.status(201).json(newP);
+});
+
+
+
+
+
+
 
 // UPDATE
 app.put('/api/products/:id', (req, res) => {
