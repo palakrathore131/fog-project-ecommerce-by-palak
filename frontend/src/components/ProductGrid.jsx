@@ -34,7 +34,7 @@ export default function ProductGrid() {
     if (minPrice) params.append("minPrice", minPrice);
     if (maxPrice) params.append("maxPrice", maxPrice);
 
-    fetch("${BASE_URL}/api/products?" + params.toString())
+    fetch(`${BASE_URL}/api/products?` + params.toString())
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.data || []);
@@ -91,7 +91,7 @@ export default function ProductGrid() {
         fetchProducts();
       }).catch(console.error);
     } else {
-      fetch("${BASE_URL}/api/products", {
+      fetch(`${BASE_URL}/api/products`, {
         method: "POST",
         body: formData
       }).then(() => {

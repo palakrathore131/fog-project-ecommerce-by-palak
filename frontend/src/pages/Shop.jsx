@@ -788,7 +788,7 @@ export default function ShopPage() {
     if (sortBy) params.append("sortBy", sortBy);
     if (sortOrder) params.append("sortOrder", sortOrder);
 
-    fetch("${BASE_URL}/api/products?" + params.toString())
+    fetch(`${BASE_URL}/api/products?` + params.toString())
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.data || []);
