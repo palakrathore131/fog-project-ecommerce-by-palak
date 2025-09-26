@@ -1,204 +1,177 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+const multer = require('multer'); 
 const fs = require('fs');
+
+
+
+
 const app = express();
-
-const multer = require('multer');
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
-
 const PORT = process.env.PORT || 3000;
 
 
-app.use(cors());
+// Storage configuration for multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname); // get original extension
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+
+
+
+// MongoDB connection
+mongoose.connect('mongodb://127.0.0.1:27017/shopDB', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+// Models
+const productSchema = new mongoose.Schema({
+  name: String,
+  desc: String,
+  price: String,
+  priceNum: Number,
+  oldPrice: String,
+  discount: String,
+  brand: String,
+  category: String,
+  image: String
+});
+
+const Product = mongoose.model('Product', productSchema);
+
+// Middleware
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}));
+
 app.use(express.json());
 
-// serve frontend static (optional)
-app.use('/assets', express.static(path.join(__dirname, '..', 'frontend', 'public')));
-
-// serve uploads folder
+// Upload folder
+// const upload = multer({ dest: 'uploads/' });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Routes
+app.get('/', (req, res) => res.send('Welcome to Home Page'));
 
+// GET products with pagination, filter, sort
+app.get('/api/products', async (req, res) => {
+  try {
+    let { page = 1, limit = 6, sortBy, sortOrder = 'asc', brand, category, minPrice, maxPrice, search } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
 
-const DATA_FILE = path.join(__dirname, 'products.json');
+    const filter = {};
 
-function readData(){
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-}
-function writeData(data){
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-}
+    if (brand) filter.brand = brand;
+    if (category) filter.category = category;
+    if (minPrice) filter.priceNum = { ...filter.priceNum, $gte: parseInt(minPrice) };
+    if (maxPrice) filter.priceNum = { ...filter.priceNum, $lte: parseInt(maxPrice) };
+    if (search) filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { desc: { $regex: search, $options: 'i' } }
+    ];
 
+    const total = await Product.countDocuments(filter);
 
+    let query = Product.find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-const SUB_FILE = path.join(__dirname, 'subscribers.json');
+    if (sortBy) {
+      const sortObj = {};
+      sortObj[sortBy === 'price' ? 'priceNum' : sortBy] = sortOrder === 'asc' ? 1 : -1;
+      query = query.sort(sortObj);
+    }
 
-function readSubs() {
-  if (!fs.existsSync(SUB_FILE)) return [];
-  return JSON.parse(fs.readFileSync(SUB_FILE, 'utf-8'));
-}
-function writeSubs(data) {
-  fs.writeFileSync(SUB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-}
+    const products = await query.exec();
+    res.json({ data: products, page, limit, total, totalPages: Math.ceil(total / limit) });
 
-app.post('/api/subscribe', (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email required" });
-
-  let subs = readSubs();
-  if (subs.includes(email)) {
-    return res.json({ message: "You are already subscribed!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  subs.push(email);
-  writeSubs(subs);
-
-  res.json({ message: "Thank you for subscribing! Welcome to our community 🎉" });
 });
 
-
-
-
-
-app.get('/', (req, res) => {
-  res.send('Welcome to Home Page');
+// GET single product
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const p = await Product.findById(req.params.id);
+    if (!p) return res.status(404).json({ error: 'Not found' });
+    res.json(p);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.get('/api/products', (req, res) => {
-  let products = readData();
-  let { page=1, limit=6, sortBy, sortOrder='asc', brand, category, minPrice, maxPrice, search } = req.query;
-  page = parseInt(page);
-  limit = parseInt(limit);
-
-  // filtering
-  if (brand) {
-    products = products.filter(p => (p.brand || '').toLowerCase() === brand.toLowerCase());
-  }
-  if (category) {
-    products = products.filter(p => (p.category || '').toLowerCase() === category.toLowerCase());
-  }
-  if (minPrice) {
-    products = products.filter(p => p.priceNum >= parseInt(minPrice));
-  }
-  if (maxPrice) {
-    products = products.filter(p => p.priceNum <= parseInt(maxPrice));
-  }
-  if (search) {
-    const q = search.toLowerCase();
-    products = products.filter(p => (p.name+ ' ' + (p.desc||'')).toLowerCase().includes(q));
-  }
-
-  // sorting
-  if (sortBy) {
-    products.sort((a,b)=>{
-      let A = a[sortBy==='price'?'priceNum':sortBy];
-      let B = b[sortBy==='price'?'priceNum':sortBy];
-      if (typeof A === 'string') A = A.toLowerCase();
-      if (typeof B === 'string') B = B.toLowerCase();
-      if (A < B) return sortOrder === 'asc' ? -1 : 1;
-      if (A > B) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
+// CREATE product with image
+app.post('/api/products', upload.single('image'), async (req, res) => {
+  try {
+    const body = req.body;
+    const newP = new Product({
+      name: body.name || 'Unnamed',
+      desc: body.desc || '',
+      price: body.price || 'Rp 0',
+      priceNum: parseInt((body.priceNum || body.price || '0').toString().replace(/[^\d]/g, '')) || 0,
+      oldPrice: body.oldPrice || '',
+      discount: body.discount || '',
+      brand: body.brand || 'Generic',
+      category: body.category || 'furniture',
+      image: req.file ? `/uploads/${req.file.filename}` : '/img/image 1.png'
     });
+
+    await newP.save();
+    res.status(201).json(newP);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  const total = products.length;
-  const start = (page-1)*limit;
-  const paged = products.slice(start, start+limit);
-
-  res.json({ data: paged, page, limit, total, totalPages: Math.ceil(total/limit) });
 });
 
-// GET single
-app.get('/api/products/:id', (req, res) => {
-  const products = readData();
-  const id = parseInt(req.params.id);
-  const p = products.find(x=>x.id===id);
-  if (!p) return res.status(404).json({error:'Not found'});
-  res.json(p);
+// UPDATE product with optional new image
+app.put('/api/products/:id', upload.single('image'), async (req, res) => {
+  try {
+    const p = await Product.findById(req.params.id);
+    if (!p) return res.status(404).json({ error: 'Not found' });
+
+    const body = req.body;
+    p.name = body.name || p.name;
+    p.desc = body.desc || p.desc;
+    p.price = body.price || p.price;
+    p.priceNum = parseInt((body.priceNum || body.price || p.price || '0').toString().replace(/[^\d]/g, '')) || p.priceNum;
+    p.brand = body.brand || p.brand;
+    p.category = body.category || p.category;
+    p.oldPrice = body.oldPrice || p.oldPrice;
+    p.discount = body.discount || p.discount;
+
+    if (req.file) p.image = `/uploads/${req.file.filename}`;
+
+    await p.save();
+    res.json(p);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// CREATE
-app.post('/api/products', (req, res) => {
-  const products = readData();
-  const body = req.body;
-  const newId = products.reduce((m,x)=> Math.max(m, x.id), 0) + 1;
-  const newP = {
-    id: newId,
-    name: body.name || 'Unnamed',
-    desc: body.desc || '',
-    price: body.price || 'Rp 0',
-    priceNum: parseInt((body.priceNum || body.price || '0').toString().replace(/[^\d]/g,'')) || 0,
-    oldPrice: body.oldPrice || '',
-    discount: body.discount || '',
-    image: body.image || '/img/image 1.png',
-    brand: body.brand || 'Generic',
-    category: body.category || 'furniture'
-  };
-  products.push(newP);
-  writeData(products);
-  res.status(201).json(newP);
+// DELETE product
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const removed = await Product.findByIdAndDelete(req.params.id);
+    if (!removed) return res.status(404).json({ error: 'Not found' });
+    res.json({ removed });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
-
-
-
-app.post('/api/products', upload.single('image'), (req, res) => {
-  const products = readData();
-  const body = req.body;
-  const newId = products.reduce((m, x) => Math.max(m, x.id), 0) + 1;
-
-  const newP = {
-    id: newId,
-    name: body.name || 'Unnamed',
-    desc: body.desc || '',
-    price: body.price || 'Rp 0',
-    priceNum: parseInt((body.priceNum || body.price || '0').toString().replace(/[^\d]/g,'')) || 0,
-    brand: body.brand || 'Generic',
-    category: body.category || 'furniture',
-    image: req.file ? `/uploads/${req.file.filename}` : '/img/image 1.png'
-  };
-
-  products.push(newP);
-  writeData(products);
-  res.status(201).json(newP);
-});
-
-
-
-
-
-
-
-// UPDATE
-app.put('/api/products/:id', (req, res) => {
-  const products = readData();
-  const id = parseInt(req.params.id);
-  const idx = products.findIndex(x=>x.id===id);
-  if (idx===-1) return res.status(404).json({error:'Not found'});
-  const body = req.body;
-  const p = products[idx];
-  p.name = body.name || p.name;
-  p.desc = body.desc || p.desc;
-  p.price = body.price || p.price;
-  p.priceNum = parseInt((body.priceNum || body.price || p.price || '0').toString().replace(/[^\d]/g,'')) || p.priceNum;
-  p.brand = body.brand || p.brand;
-  p.category = body.category || p.category;
-  p.image = body.image || p.image;
-  writeData(products);
-  res.json(p);
-});
-
-// DELETE
-app.delete('/api/products/:id', (req, res) => {
-  let products = readData();
-  const id = parseInt(req.params.id);
-  const idx = products.findIndex(x=>x.id===id);
-  if (idx===-1) return res.status(404).json({error:'Not found'});
-  const removed = products.splice(idx,1)[0];
-  writeData(products);
-  res.json({ removed });
-});
-
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
