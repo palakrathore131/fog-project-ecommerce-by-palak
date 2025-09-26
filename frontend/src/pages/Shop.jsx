@@ -946,7 +946,7 @@ export default function ShopPage() {
           >
             {/* Product Image */}
             <img
-              src={`http://localhost:3000${p.image}`}
+              src={`https://fog-project-ecommerce-by-palak.onrender.com${p.image}`}
               alt={p.name}
               className="w-full h-56 sm:h-64 lg:h-72 object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
