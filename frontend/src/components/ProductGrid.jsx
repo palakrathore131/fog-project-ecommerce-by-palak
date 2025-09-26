@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { ArrowsLeftRight, Heart } from "@phosphor-icons/react";
 import { FiShare2 } from "react-icons/fi";
 
+const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://fog-project-ecommerce-by-palak.onrender.com";
+
 export default function ProductGrid() {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
@@ -29,7 +34,7 @@ export default function ProductGrid() {
     if (minPrice) params.append("minPrice", minPrice);
     if (maxPrice) params.append("maxPrice", maxPrice);
 
-    fetch("/api/products?" + params.toString())
+    fetch("${BASE_URL}/api/products?" + params.toString())
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.data || []);
@@ -65,7 +70,7 @@ export default function ProductGrid() {
 
   const handleDelete = (id) => {
     if (!confirm("Are you sure to delete this product?")) return;
-    fetch(`/api/products/${id}`, { method: "DELETE" })
+    fetch(`${BASE_URL}/api/products/${id}`, { method: "DELETE" })
       .then(() => fetchProducts())
       .catch(console.error);
   };
@@ -78,7 +83,7 @@ export default function ProductGrid() {
     });
 
     if (editing) {
-      fetch(`/api/products/${editing._id}`, {
+      fetch(`${BASE_URL}/api/products/${editing._id}`, {
         method: "PUT",
         body: formData
       }).then(() => {
@@ -86,7 +91,7 @@ export default function ProductGrid() {
         fetchProducts();
       }).catch(console.error);
     } else {
-      fetch("/api/products", {
+      fetch("${BASE_URL}/api/products", {
         method: "POST",
         body: formData
       }).then(() => {
@@ -166,14 +171,18 @@ export default function ProductGrid() {
           >
             {/* Product Image */}
             <img
-              src={`https://fog-project-ecommerce-by-palak.onrender.com${p.image}`}
+              src={`${BASE_URL}${p.image}`}
               alt={p.name}
               className="w-full h-56 sm:h-64 lg:h-72 object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
                 e.currentTarget.onerror = null; // infinite loop prevent
-                e.currentTarget.src = p.image || "/img/image 1.png";
+                // e.currentTarget.src = p.image || "/img/image 1.png";
+                e.currentTarget.src = p.image || "https://fog-project-ecommerce-by-palak.onrender.com/img/image 1.png"
               }}
+
             />
+
+
 
             {/* Discount / New Tag */}
             {p.discount && (

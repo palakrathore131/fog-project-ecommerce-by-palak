@@ -765,6 +765,13 @@ import { ArrowsLeftRight, Heart } from "@phosphor-icons/react";
 import { FiShare2 } from "react-icons/fi";
 import FeaturesBar from "../components/Features";
 
+
+const BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://fog-project-ecommerce-by-palak.onrender.com";
+
+
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
@@ -781,7 +788,7 @@ export default function ShopPage() {
     if (sortBy) params.append("sortBy", sortBy);
     if (sortOrder) params.append("sortOrder", sortOrder);
 
-    fetch("/api/products?" + params.toString())
+    fetch("${BASE_URL}/api/products?" + params.toString())
       .then((res) => res.json())
       .then((data) => {
         setProducts(data.data || []);
@@ -828,7 +835,7 @@ export default function ShopPage() {
 
   const handleDelete = (id) => {
     if (!confirm("Are you sure to delete this product?")) return;
-    fetch(`/api/products/${id}`, { method: "DELETE" })
+    fetch(`${BASE_URL}/api/products/${id}`, { method: "DELETE" })
       .then(() => fetchProducts())
       .catch(console.error);
   };
@@ -846,7 +853,7 @@ export default function ShopPage() {
     formData.append("category", form.category);
     if (form.image) formData.append("image", form.image);
 
-    fetch(`/api/products/${editing._id}`, {
+    fetch(`${BASE_URL}/api/products/${editing._id}`, {
       method: "PUT",
       body: formData,
     })
@@ -946,7 +953,7 @@ export default function ShopPage() {
           >
             {/* Product Image */}
             <img
-              src={`https://fog-project-ecommerce-by-palak.onrender.com${p.image}`}
+              src={`${BASE_URL}${p.image}`}
               alt={p.name}
               className="w-full h-56 sm:h-64 lg:h-72 object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
