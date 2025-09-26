@@ -275,3 +275,378 @@ export default function ProductGrid() {
     </section>
   );
 }
+
+
+// ------------------------
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { ArrowsLeftRight, Heart } from "@phosphor-icons/react";
+// import { FiShare2 } from "react-icons/fi";
+
+// export default function ProductGrid() {
+//   // Predefined local products
+//   const initialProducts = [
+//   {
+//     "id": 1,
+//     "name": "Syltherine",
+//     "desc": "Stylish cafe chair",
+//     "oldPrice": "Rp 3.500.000",
+//     "price": "Rp 2.500.000",
+//     "priceNum": 2500000,
+//     "discount": "-30%",
+//     "image": "/img/image 1.png",
+//     "brand": "Syltherine",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 2,
+//     "name": "Leviosa",
+//     "desc": "Stylish cafe chair",
+//     "oldPrice": "",
+//     "price": "Rp 2.500.000",
+//     "priceNum": 2500000,
+//     "discount": "",
+//     "image": "/public/img/images (3).png",
+//     "brand": "Leviosa",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 3,
+//     "name": "Lolito",
+//     "desc": "Luxury big sofa",
+//     "oldPrice": "Rp 14.000.000",
+//     "price": "Rp 7.000.000",
+//     "priceNum": 7000000,
+//     "discount": "-50%",
+//     "image": "/public/img/images (1).png",
+//     "brand": "Lolito",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 4,
+//     "name": "Respira",
+//     "desc": "Outdoor bar table and stool",
+//     "oldPrice": "",
+//     "price": "Rp 500.000",
+//     "priceNum": 500000,
+//     "discount": "",
+//     "image": "/public/img/images (2).png",
+//     "brand": "Respira",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 5,
+//     "name": "Grifo",
+//     "desc": "Night lamp",
+//     "oldPrice": "",
+//     "price": "Rp 1.500.000",
+//     "priceNum": 1500000,
+//     "discount": "",
+//     "image": "/public/img/images (4).png",
+//     "brand": "Grifo",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 6,
+//     "name": "Muggo",
+//     "desc": "Small mug",
+//     "oldPrice": "",
+//     "price": "Rp 150.000",
+//     "priceNum": 150000,
+//     "discount": "",
+//     "image": "/public/img/images (5).png",
+//     "brand": "Muggo",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 7,
+//     "name": "Pingky",
+//     "desc": "Cute bed set",
+//     "oldPrice": "Rp 14.000.000",
+//     "price": "Rp 7.000.000",
+//     "priceNum": 7000000,
+//     "discount": "-50%",
+//     "image": "/public/img/images (6).png",
+//     "brand": "Pingky",
+//     "category": "furniture"
+//   },
+//   {
+//     "id": 8,
+//     "name": "Potty",
+//     "desc": "Minimalist flower pot",
+//     "oldPrice": "",
+//     "price": "Rp 500.000",
+//     "priceNum": 500000,
+//     "discount": "",
+//     "image": "/public/img/images.png",
+//     "brand": "Potty",
+//     "category": "furniture"
+//   }
+// ];
+//   const [products, setProducts] = useState(initialProducts);
+//   const [page, setPage] = useState(1);
+//   const [limit, setLimit] = useState(6);
+//   const [totalPages, setTotalPages] = useState(1);
+//   const [brands, setBrands] = useState([]);
+//   const [showModal, setShowModal] = useState(false);
+//   const [editing, setEditing] = useState(null);
+//   const [form, setForm] = useState({
+//     name: "",
+//     desc: "",
+//     price: "",
+//     brand: "",
+//     category: "",
+//     image: null,
+//   });
+
+//   // Fetch products from backend
+//   const fetchProducts = () => {
+//     fetch(`/api/products?page=${page}&limit=${limit}`)
+//       .then((res) => res.json())
+//       .then((data) => {
+//         if (data?.data?.length > 0) {
+//           setProducts(data.data);
+//           setTotalPages(data.totalPages || 1);
+//           const b = Array.from(
+//             new Set((data.data || []).map((p) => p.brand || "Generic"))
+//           );
+//           setBrands(b);
+//         } else {
+//           // Agar DB empty hai to fallback local data
+//           setProducts(initialProducts);
+//           setTotalPages(1);
+//         }
+//       })
+//       .catch(() => {
+//         // Agar API fail ho jaye to fallback
+//         setProducts(initialProducts);
+//         setTotalPages(1);
+//       });
+//   };
+
+//   useEffect(() => {
+//     fetchProducts();
+//   }, [page, limit]);
+
+//   // Add product (DB + local fallback)
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     const formData = new FormData();
+//     Object.keys(form).forEach((key) => {
+//       if (form[key] !== null) formData.append(key, form[key]);
+//     });
+
+//     if (editing) {
+//       fetch(`/api/products/${editing._id}`, {
+//         method: "PUT",
+//         body: formData,
+//       })
+//         .then(() => {
+//           setShowModal(false);
+//           fetchProducts();
+//         })
+//         .catch(() => {
+//           // fallback update in local
+//           setProducts((prev) =>
+//             prev.map((p) =>
+//               p.id === editing.id ? { ...p, ...form } : p
+//             )
+//           );
+//           setShowModal(false);
+//         });
+//     } else {
+//       fetch(`/api/products`, {
+//         method: "POST",
+//         body: formData,
+//       })
+//         .then(() => {
+//           setShowModal(false);
+//           fetchProducts();
+//         })
+//         .catch(() => {
+//           // fallback add local
+//           setProducts((prev) => [
+//             ...prev,
+//             { id: Date.now(), ...form, image: form.image?.name || "/img/image 1.png" },
+//           ]);
+//           setShowModal(false);
+//         });
+//     }
+//   };
+
+//   // Delete product
+//   const handleDelete = (id) => {
+//     if (!confirm("Are you sure to delete this product?")) return;
+//     fetch(`/api/products/${id}`, { method: "DELETE" })
+//       .then(() => fetchProducts())
+//       .catch(() => {
+//         // fallback delete in local
+//         setProducts(products.filter((p) => p.id !== id));
+//       });
+//   };
+
+//   const openAdd = () => {
+//     setEditing(null);
+//     setForm({
+//       name: "",
+//       desc: "",
+//       price: "",
+//       brand: "",
+//       category: "",
+//       image: null,
+//     });
+//     setShowModal(true);
+//   };
+
+//   const openEdit = (p) => {
+//     setEditing(p);
+//     setForm({
+//       name: p.name,
+//       desc: p.desc,
+//       price: p.price,
+//       brand: p.brand,
+//       category: p.category,
+//       image: null,
+//     });
+//     setShowModal(true);
+//   };
+
+//   return (
+//     <section className="max-w-6xl mx-auto py-10 px-4">
+//       <div className="flex items-center justify-between mb-6">
+//         <h2 className="text-2xl font-bold">Products</h2>
+//         <button
+//           onClick={openAdd}
+//           className="px-4 py-2 rounded bg-yellow-600 text-white"
+//         >
+//           Add Product
+//         </button>
+//       </div>
+
+//       {/* Product Grid */}
+//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+//         {products.map((p) => (
+//           <div key={p._id || p.id} className="border rounded overflow-hidden">
+//             <img
+//               src={`http://localhost:3000${p.image}`}
+//               alt={p.name}
+//               className="w-full h-56 object-cover"
+//               onError={(e) => {
+//                 e.currentTarget.src = p.image || "/img/image 1.png";
+//               }}
+//             />
+//             <div className="p-4">
+//               <h3 className="text-lg font-bold">{p.name}</h3>
+//               <p>{p.desc}</p>
+//               <p>{p.price}</p>
+//               <div className="flex gap-2 mt-2">
+//                 <button
+//                   onClick={() => openEdit(p)}
+//                   className="px-3 py-1 bg-blue-500 text-white rounded"
+//                 >
+//                   Edit
+//                 </button>
+//                 <button
+//                   onClick={() => handleDelete(p._id || p.id)}
+//                   className="px-3 py-1 bg-red-500 text-white rounded"
+//                 >
+//                   Delete
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* Pagination */}
+//       <div className="flex justify-center gap-3 mt-6">
+//         <button
+//           disabled={page <= 1}
+//           onClick={() => setPage(page - 1)}
+//           className="px-3 py-1 border rounded disabled:opacity-50"
+//         >
+//           Prev
+//         </button>
+//         <span>
+//           Page {page} / {totalPages}
+//         </span>
+//         <button
+//           disabled={page >= totalPages}
+//           onClick={() => setPage(page + 1)}
+//           className="px-3 py-1 border rounded disabled:opacity-50"
+//         >
+//           Next
+//         </button>
+//       </div>
+
+//       {/* Modal */}
+//       {showModal && (
+//         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+//           <div className="bg-white rounded p-6 w-full max-w-lg">
+//             <h3 className="text-xl font-semibold mb-4">
+//               {editing ? "Update Product" : "Add Product"}
+//             </h3>
+//             <form onSubmit={handleSubmit} className="space-y-3">
+//               <input
+//                 className="border p-2 rounded w-full"
+//                 placeholder="Name"
+//                 required
+//                 value={form.name}
+//                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+//               />
+//               <input
+//                 className="border p-2 rounded w-full"
+//                 placeholder="Description"
+//                 value={form.desc}
+//                 onChange={(e) => setForm({ ...form, desc: e.target.value })}
+//               />
+//               <input
+//                 className="border p-2 rounded w-full"
+//                 placeholder="Price"
+//                 value={form.price}
+//                 onChange={(e) => setForm({ ...form, price: e.target.value })}
+//               />
+//               <input
+//                 className="border p-2 rounded w-full"
+//                 placeholder="Brand"
+//                 value={form.brand}
+//                 onChange={(e) => setForm({ ...form, brand: e.target.value })}
+//               />
+//               <input
+//                 className="border p-2 rounded w-full"
+//                 placeholder="Category"
+//                 value={form.category}
+//                 onChange={(e) => setForm({ ...form, category: e.target.value })}
+//               />
+//               <input
+//                 type="file"
+//                 accept="image/*"
+//                 onChange={(e) =>
+//                   setForm({ ...form, image: e.target.files[0] })
+//                 }
+//                 className="border p-2 rounded w-full"
+//               />
+//               <div className="flex justify-end gap-3 mt-4">
+//                 <button
+//                   type="button"
+//                   onClick={() => setShowModal(false)}
+//                   className="px-4 py-2 border rounded"
+//                 >
+//                   Cancel
+//                 </button>
+//                 <button
+//                   type="submit"
+//                   className="px-4 py-2 bg-yellow-600 text-white rounded"
+//                 >
+//                   {editing ? "Update" : "Add"}
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </section>
+//   );
+// }

@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
-const multer = require('multer'); 
+const multer = require('multer');
 const fs = require('fs');
 
 
@@ -28,13 +28,133 @@ const upload = multer({ storage: storage });
 
 
 
+async function seedProducts() {
+  const count = await Product.countDocuments();
+  if (count === 0) {
+    const products = [
+      {
+        "id": 1,
+        "name": "Syltherine",
+        "desc": "Stylish cafe chair",
+        "oldPrice": "Rp 3.500.000",
+        "price": "Rp 2.500.000",
+        "priceNum": 2500000,
+        "discount": "-30%",
+        "image": "/img/image 1.png",
+        "brand": "Syltherine",
+        "category": "furniture"
+      },
+      {
+        "id": 2,
+        "name": "Leviosa",
+        "desc": "Stylish cafe chair",
+        "oldPrice": "",
+        "price": "Rp 2.500.000",
+        "priceNum": 2500000,
+        "discount": "",
+        "image": "/public/img/images (3).png",
+        "brand": "Leviosa",
+        "category": "furniture"
+      },
+      {
+        "id": 3,
+        "name": "Lolito",
+        "desc": "Luxury big sofa",
+        "oldPrice": "Rp 14.000.000",
+        "price": "Rp 7.000.000",
+        "priceNum": 7000000,
+        "discount": "-50%",
+        "image": "/public/img/images (1).png",
+        "brand": "Lolito",
+        "category": "furniture"
+      },
+      {
+        "id": 4,
+        "name": "Respira",
+        "desc": "Outdoor bar table and stool",
+        "oldPrice": "",
+        "price": "Rp 500.000",
+        "priceNum": 500000,
+        "discount": "",
+        "image": "/public/img/images (2).png",
+        "brand": "Respira",
+        "category": "furniture"
+      },
+      {
+        "id": 5,
+        "name": "Grifo",
+        "desc": "Night lamp",
+        "oldPrice": "",
+        "price": "Rp 1.500.000",
+        "priceNum": 1500000,
+        "discount": "",
+        "image": "/public/img/images (4).png",
+        "brand": "Grifo",
+        "category": "furniture"
+      },
+      {
+        "id": 6,
+        "name": "Muggo",
+        "desc": "Small mug",
+        "oldPrice": "",
+        "price": "Rp 150.000",
+        "priceNum": 150000,
+        "discount": "",
+        "image": "/public/img/images (5).png",
+        "brand": "Muggo",
+        "category": "furniture"
+      },
+      {
+        "id": 7,
+        "name": "Pingky",
+        "desc": "Cute bed set",
+        "oldPrice": "Rp 14.000.000",
+        "price": "Rp 7.000.000",
+        "priceNum": 7000000,
+        "discount": "-50%",
+        "image": "/public/img/images (6).png",
+        "brand": "Pingky",
+        "category": "furniture"
+      },
+      {
+        "id": 8,
+        "name": "Potty",
+        "desc": "Minimalist flower pot",
+        "oldPrice": "",
+        "price": "Rp 500.000",
+        "priceNum": 500000,
+        "discount": "",
+        "image": "/public/img/images.png",
+        "brand": "Potty",
+        "category": "furniture"
+      }
+    ];
 
-// MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/shopDB', {
+    await Product.insertMany(products);
+    console.log("✅ Products Seeded Successfully!");
+  } else {
+    console.log("⚡ Products already exist, skipping seeding.");
+  }
+}
+
+
+
+
+mongoose.connect('mongodb+srv://satpalsingh:satpal12@shopDB.ickdeey.mongodb.net/?retryWrites=true&w=majority&appName=shopDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+}).then(async () => {
+  console.log('MongoDB connected');
+
+  // ✅ Seed Data
+  await seedProducts();
+
+}).catch(err => console.log(err));
+
+
+
+
+
 
 // Models
 const productSchema = new mongoose.Schema({
@@ -173,5 +293,27 @@ app.delete('/api/products/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
+// backend/server.js ya index.js me
+app.post('/api/subscribe', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    // Abhi ke liye sirf console ya dummy save
+    console.log("New subscriber:", email);
+
+    // Agar MongoDB me save karna ho:
+    // const sub = new Subscriber({ email });
+    // await sub.save();
+
+    res.json({ message: "Thank you for subscribing! 🎉" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -67,8 +67,8 @@ export default function Footer() {
         </div>
       </div>
 
-      <p className="text-black text-sm mt-10 pt-8 border-t-2 border-gray-200 text-center">
-        © 2025 Funiro. All rights reserved
+      <p className="text-black text-sm mt-10 pt-8 border-t-2 border-gray-200">
+        © 2025 Furino. All rights reserved
       </p>
     </footer>
   );
