@@ -120,7 +120,7 @@ async function seedProducts() {
         "price": "Rp 500.000",
         "priceNum": 500000,
         "discount": "",
-        "image": "/img/images.png",
+        "image": "img/images.png",
         "brand": "Potty",
         "category": "furniture"
       }
