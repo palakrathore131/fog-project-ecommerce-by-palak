@@ -179,7 +179,7 @@ app.get('/', (req, res) => res.send('Welcome to Home Page'));
 // GET products with pagination, filter, sort
 app.get('/api/products', async (req, res) => {
   try {
-    let { page = 1, limit = 6, sortBy, sortOrder = 'asc', brand, category, minPrice, maxPrice, search } = req.query;
+    let { page = 1, limit = 8, sortBy, sortOrder = 'asc', brand, category, minPrice, maxPrice, search } = req.query;
     page = parseInt(page);
     limit = parseInt(limit);
 
