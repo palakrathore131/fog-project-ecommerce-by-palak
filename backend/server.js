@@ -4,10 +4,6 @@ const path = require('path');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
-
-
-
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -52,7 +48,7 @@ async function seedProducts() {
         "price": "Rp 2.500.000",
         "priceNum": 2500000,
         "discount": "",
-        "image": "/public/img/images (3).png",
+        "image": "/img/images (3).png",
         "brand": "Leviosa",
         "category": "furniture"
       },
@@ -64,7 +60,7 @@ async function seedProducts() {
         "price": "Rp 7.000.000",
         "priceNum": 7000000,
         "discount": "-50%",
-        "image": "/public/img/images (1).png",
+        "image": "/img/images (1).png",
         "brand": "Lolito",
         "category": "furniture"
       },
@@ -76,7 +72,7 @@ async function seedProducts() {
         "price": "Rp 500.000",
         "priceNum": 500000,
         "discount": "",
-        "image": "/public/img/images (2).png",
+        "image": "/img/images (2).png",
         "brand": "Respira",
         "category": "furniture"
       },
@@ -88,7 +84,7 @@ async function seedProducts() {
         "price": "Rp 1.500.000",
         "priceNum": 1500000,
         "discount": "",
-        "image": "/public/img/images (4).png",
+        "image": "/img/images (4).png",
         "brand": "Grifo",
         "category": "furniture"
       },
@@ -100,7 +96,7 @@ async function seedProducts() {
         "price": "Rp 150.000",
         "priceNum": 150000,
         "discount": "",
-        "image": "/public/img/images (5).png",
+        "image": "/img/images (5).png",
         "brand": "Muggo",
         "category": "furniture"
       },
@@ -112,7 +108,7 @@ async function seedProducts() {
         "price": "Rp 7.000.000",
         "priceNum": 7000000,
         "discount": "-50%",
-        "image": "/public/img/images (6).png",
+        "image": "/img/images (6).png",
         "brand": "Pingky",
         "category": "furniture"
       },
@@ -124,7 +120,7 @@ async function seedProducts() {
         "price": "Rp 500.000",
         "priceNum": 500000,
         "discount": "",
-        "image": "/public/img/images.png",
+        "image": "/img/images.png",
         "brand": "Potty",
         "category": "furniture"
       }
@@ -139,7 +135,7 @@ async function seedProducts() {
 
 
 
-
+//This is my friend's database, my free sever is not running....
 mongoose.connect('mongodb+srv://satpalsingh:satpal12@shopDB.ickdeey.mongodb.net/?retryWrites=true&w=majority&appName=shopDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -152,11 +148,6 @@ mongoose.connect('mongodb+srv://satpalsingh:satpal12@shopDB.ickdeey.mongodb.net/
 }).catch(err => console.log(err));
 
 
-
-
-
-
-// Models
 const productSchema = new mongoose.Schema({
   name: String,
   desc: String,
@@ -179,8 +170,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// Upload folder
-// const upload = multer({ dest: 'uploads/' });
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -301,13 +291,7 @@ app.post('/api/subscribe', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
-
-    // Abhi ke liye sirf console ya dummy save
     console.log("New subscriber:", email);
-
-    // Agar MongoDB me save karna ho:
-    // const sub = new Subscriber({ email });
-    // await sub.save();
 
     res.json({ message: "Thank you for subscribing! 🎉" });
   } catch (err) {
