@@ -1,8 +1,8 @@
 export default function Category() {
   const categories = [
-    { title: "Dining", img: "/public/img/22.png" },
+    { title: "Dining", img: "/img/22.png" },
     { title: "Living", img: "/img/Image-living room.png" },
-    { title: "Bedroom", img: "/public/img/11.png" },
+    { title: "Bedroom", img: "/img/11.png" },
   ];
 
   return (
