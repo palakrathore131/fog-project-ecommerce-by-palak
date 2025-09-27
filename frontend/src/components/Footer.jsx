@@ -8,7 +8,7 @@ export default function Footer() {
     e.preventDefault();
     if (!email) return alert("Please enter your email!");
 
-    fetch("/api/subscribe", {
+    fetch("https://fog-project-ecommerce-by-palak.onrender.com/api/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
