@@ -156,6 +156,7 @@ export default function ProductGrid() {
           <select value={limit} onChange={e => { setLimit(parseInt(e.target.value)); setPage(1); }} className="border p-2 rounded">
             <option value={4}>4</option>
             <option value={6}>6</option>
+            <option value={8}>8</option>
             <option value={12}>12</option>
           </select>
         </div>
